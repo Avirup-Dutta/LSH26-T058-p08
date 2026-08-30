@@ -1,189 +1,139 @@
 # School Result Processing and GPA Engine
 
-Python REST API (FastAPI) + Ext JS front end. Six compulsory subjects and one
-optional fourth subject per student, separate theory and practical marks where a
-subject has a practical part, and a per-subject trace showing which rule decided
-what.
+- **Team ID:** `LSH26-T058`
+- **Problem ID:** `P08`
+- **Repository Name:** `Avirup-Dutta-LSH26-T058-p08`
+- **Live URL:** `https://result-engine-vercel.vercel.app`
 
 ---
 
-## Your stack questions, answered first
+## Problem-Solving Method Statement
 
-**Do you need Supabase? No.**
+Our solution implements a modular, pure-Python deterministic rule engine (`app/rules.py`) decoupled completely from database layers, web frameworks, and third-party dependencies. This architecture ensures 100% auditable, transparent, and reproducible grading calculations that can be verified offline via CLI tools, unit tests, and public fixture test harnesses.
 
-Supabase is hosted Postgres with some extras bolted on: auth, storage, row level
-security, an auto-generated REST layer. You already decided to write your own
-REST layer in Python, so the auto-generated one is dead weight. What is left is
-"a Postgres you did not have to install", which is worth something if you have no
-server, and worth nothing if you already have one.
-
-This project runs on plain `DATABASE_URL`. Point it at anything:
-
-```bash
-# local docker
-DATABASE_URL=postgresql+psycopg://postgres:pass@localhost:5432/results
-
-# supabase, if you want it - it is just Postgres
-DATABASE_URL=postgresql+psycopg://postgres.<ref>:<pass>@aws-0-<region>.pooler.supabase.com:6543/postgres
-
-# no database at all, for trying the engine out
-DATABASE_URL=sqlite:///./results.db
-```
-
-Nothing above the connection string changes. If you do use Supabase, use the
-**session pooler** port (6543) rather than 5432, keep the service key on the
-server, and do not enable row level security on these tables unless you also plan
-to move authentication into Supabase. Two auth systems fighting over one database
-is the usual way this goes wrong.
-
-One thing that genuinely argues for Supabase on a school project: you get a
-managed database, backups, and a web SQL editor without running a server. One
-thing that argues against it: marks are the kind of data an examination board
-will ask you where it physically lives.
-
-**Do you still write migrations? Yes, either way.**
-
-Supabase does not replace migrations. It has its own migration tooling, but if
-your models live in SQLAlchemy then Alembic is the tool that reads them. This
-repo has Alembic set up and one migration in `alembic/versions/`. The Supabase
-dashboard's table editor is a trap here: change a column there and your Alembic
-history no longer describes your database.
-
-```bash
-alembic upgrade head                                    # apply
-alembic revision --autogenerate -m "add exam term"      # after editing models.py
-```
-
-**Ext JS notes.** The API returns `{"success": true, "total": n, "data": [...]}`
-on every endpoint because that is the shape `Ext.data.Store` expects with
-`rootProperty: 'data'` and `totalProperty: 'total'`. CORS origins are set in
-`.env`. Ext JS is served as static files from `web/`, not from FastAPI, so the
-two run on different ports in development.
+The engine implements official secondary education board standards:
+1. Six compulsory subjects plus one optional (4th) subject per student.
+2. Distinct theory (75 max / 25 pass) and practical (25 max / 8 pass) components where applicable, enforcing that component failure causes subject failure regardless of combined totals.
+3. Strict compulsory pass requirement (any compulsory subject fail results in GPA 0.00 / F).
+4. Optional 4th subject bonus mechanism where only grade points earned in excess of 2.00 contribute to the GPA total (capped at 5.00), preventing an optional subject from ever penalizing a student.
+5. Multi-tiered verification checking lists (R-29) categorizing students by audit risk (Priority 1: Outcome-determining edge cases, Priority 2: Rule application / withholding, Priority 3: Routine adjustments).
 
 ---
 
-## Running it
+## Team Members and Contributions
+
+| Registered Name | GitHub Username | Major Contribution | Evidence Paths / Commits |
+|---|---|---|---|
+| Avirup Dutta | `Avirup-Dutta` | Core rule engine (`app/rules.py`), FastAPI backend (`app/main.py`), checking list service (`app/services.py`), Ext JS frontend integration (`web/app.js`), test suites (`tests/test_rules.py`), test harness (`harness.py`), and CLI reporting (`report.py`). | `app/rules.py`, `app/services.py`, `app/main.py`, `web/app.js`, `tests/test_rules.py`, `harness.py`, `report.py` |
+| Riyad Haque | `riyad492` | Backend & database schema architecture, edge-case dataset generation, testing, and deployment setup. | `app/models.py`, `seed/seed_data.py`, `DEPLOY.md`, `vercel.json` |
+
+---
+
+## Requirement Proof & Verification
+
+| Requirement ID | Description | Status | Evidence |
+|---|---|---|---|
+| **R1** | Subject Evaluation, Component Pass Marks & Grade Bands (R1-R5, R11, R12) | **Complete** | [`app/rules.py`](app/rules.py#L183-L232), [`tests/test_rules.py`](tests/test_rules.py#L34-L65) |
+| **R2** | Overall Student GPA, 4th Subject Bonus, Cap 5.00 & Fail Rules (G1-G5, R13) | **Complete** | [`app/rules.py`](app/rules.py#L237-L353), [`tests/test_rules.py`](tests/test_rules.py#L69-L159) |
+| **R3** | Three R-29 Checking Lists (Optional <= 2.0, Practical Fail < 8, Absent AB) & Tiered Verification | **Complete** | [`app/services.py`](app/services.py#L15-L62), [`report.py`](report.py#L60-L120), [`web/app.js`](web/app.js) |
+| **R4** | Interactive UI Dashboard, Per-Subject Rule Trace & Live Compute Endpoint | **Complete** | [`web/index.html`](web/index.html), [`web/app.js`](web/app.js), [`app/main.py`](app/main.py#L57-L175) |
+
+---
+
+## Major Decisions & Architecture
+
+1. **Decoupled Pure-Python Engine (`app/rules.py`):** Zero framework/database dependencies inside the calculation core allows instant unit testing and standalone execution without launching a database server.
+2. **Deterministic Audit Trace:** Every decision (subject evaluation, component failure, optional bonus application, GPA calculation) emits human-readable rule codes (`R1_ABSENT`, `R2_THEORY_FAIL`, `R3_PRACTICAL_FAIL`, `R4_TOTAL_FAIL`, `R5_BAND`, `G1_COMPULSORY_FAIL`, `G2_AVERAGE`, `G3_OPTIONAL_APPLIED`, `G4_OPTIONAL_IGNORED`, `G5_CAPPED`) directly into the student result record.
+3. **Dual Execution Interfaces:** Rich interactive Ext JS web UI with sortable grids and detailed student trace modals, alongside full-featured CLI tools (`report.py`, `harness.py`) for automated batch processing.
+4. **Three Priority Tiers for Office Checklist:** Prioritizes administrative review by separating outcome-altering results (Priority 1) from policy exceptions (Priority 2) and routine calculation shifts (Priority 3).
+
+---
+
+## Known Limitations
+
+- **Vercel Serverless Read-Only SQLite:** When hosted on Vercel without an external PostgreSQL instance, SQLite operates in read-only mode with pre-seeded data. Full write/recompute capabilities run locally or by configuring a PostgreSQL `DATABASE_URL`.
+
+---
+
+## Running Locally
+
+### 1. Setup Environment
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
 
-alembic upgrade head          # create the schema
-python -m seed.seed_data      # 2 classes, 73 students, 13 edge cases
-uvicorn app.main:app --reload # API on :8000
-
-cd web && python -m http.server 1841   # Ext JS on :1841
+alembic upgrade head          # create database schema
+python -m seed.seed_data      # seed 2 classes, 73 students, 13 hand-built edge cases
+uvicorn app.main:app --reload # start FastAPI on :8000
 ```
 
-Then press **Run the engine**, or hit `POST /api/results/compute`.
-
-Without a browser:
+### 2. Frontend UI
 
 ```bash
-python report.py trace 9A-031     # one student's full trace
-python report.py trace --edges    # every seeded edge case
-python report.py checklist        # the office verification list
-pytest tests -q                   # 13 tests, one per rule
+cd web && python -m http.server 1841   # launch Ext JS on :1841
+```
+Open `http://localhost:1841` in your browser and click **Run the engine** or navigate the student roster and verification lists.
+
+### 3. CLI Reports & Verification
+
+```bash
+python report.py trace 9A-031     # inspect one student's full calculation trace
+python report.py trace --edges    # run every seeded edge case
+python report.py checklist        # generate the office verification list
+pytest tests -q                   # run the automated rule test suite
+```
+
+### 4. Running the Organizers' Public Test Fixture
+
+```bash
+python harness.py P08_school_results_public.json
+python harness.py P08_school_results_public.json --out results.json
 ```
 
 ---
 
-## The rules the engine runs
+## The Rule Book
 
-Grade points come from the combined 0-100 mark:
+Grade points derived from combined 0–100 mark:
 
-| Mark | 80+ | 70-79 | 60-69 | 50-59 | 40-49 | 33-39 | 0-32 |
-|---|---|---|---|---|---|---|---|
-| Grade | A+ | A | A- | B | C | D | F |
-| Point | 5.0 | 4.0 | 3.5 | 3.0 | 2.0 | 1.0 | 0.0 |
+| Mark Range | Letter Grade | Grade Point |
+|---|---|---|
+| 80 – 100 | A+ | 5.0 |
+| 70 – 79 | A | 4.0 |
+| 60 – 69 | A- | 3.5 |
+| 50 – 59 | B | 3.0 |
+| 40 – 49 | C | 2.0 |
+| 33 – 39 | D | 1.0 |
+| 0 – 32 | F | 0.0 |
 
-Subject rules, in the order they are applied. The first one that matches wins,
-and its code goes into the trace.
+### Subject Rules (Order of Evaluation)
+- `R1_ABSENT`: Absent in any component $\rightarrow$ Fail (F / 0.0), no mark recorded.
+- `R2_THEORY_FAIL`: Theory mark below theory pass line in split subject $\rightarrow$ Fail (F / 0.0).
+- `R3_PRACTICAL_FAIL`: Practical mark below practical pass line in split subject $\rightarrow$ Fail (F / 0.0).
+- `R4_TOTAL_FAIL`: Combined total mark below 33 $\rightarrow$ Fail (F / 0.0).
+- `R5_BAND`: Normal lookup according to grade band table.
 
-| Code | Rule |
-|---|---|
-| `R1_ABSENT` | Absent in any component. Fail, no mark recorded. |
-| `R2_THEORY_FAIL` | Theory below its own pass mark, in a split subject. Fail even if the combined mark passes. |
-| `R3_PRACTICAL_FAIL` | Practical below its own pass mark. Same. |
-| `R4_TOTAL_FAIL` | Combined mark below 33. |
-| `R5_BAND` | Normal band lookup. |
-
-Student rules:
-
-| Code | Rule |
-|---|---|
-| `G1_COMPULSORY_FAIL` | Any compulsory subject failed, so GPA is 0.00 and the grade is F, whatever the average was. |
-| `G2_AVERAGE` | Sum of the six compulsory grade points, divided by six. |
-| `G3_OPTIONAL_APPLIED` | Optional grade point above 2.00. The excess is added to the total. |
-| `G4_OPTIONAL_IGNORED` | Optional grade point at or below 2.00. Adds nothing, and cannot fail the student. |
-| `G5_CAPPED` | Total over 5.00 is capped at 5.00. |
-
-All of it is constants at the top of `app/rules.py`. Change the bands, the
-optional threshold, or the divisor, and the engine and its trace follow.
+### Student Rules
+- `G1_COMPULSORY_FAIL`: Any compulsory subject failed $\rightarrow$ GPA 0.00, Grade F.
+- `G2_AVERAGE`: Sum of 6 compulsory subject grade points divided by 6.
+- `G3_OPTIONAL_APPLIED`: Optional subject grade point > 2.00 $\rightarrow$ excess $(GP - 2.00)$ added to total points.
+- `G4_OPTIONAL_IGNORED`: Optional subject grade point $\le$ 2.00 $\rightarrow$ adds 0.00, cannot fail student.
+- `G5_CAPPED`: Total GPA capped at 5.00.
 
 ---
 
-## Where the four required items live
-
-| Item | Where |
-|---|---|
-| 1. 60+ students, two classes, edge cases | `seed/seed_data.py` - 73 students, 13 hand-built edges |
-| 2. Grade point, GPA, letter grade | `app/rules.py`, exposed at `POST /api/results/compute` |
-| 3. Per student trace | `GET /api/students/{id}/result`, the trace tab in the UI, `report.py trace` |
-| 4. Office checking list | `GET /api/reports/verification`, `.csv` for print, `report.py checklist` |
-
-### The 13 edge cases
-
-Every one is marked with a note on the student record and shows as `edge case`
-in the grid.
-
-1. One failed subject with a strong average - average 70.83, Mathematics 30, result F
-2. Practical fail with a passing theory mark - Physics 58/75 theory, 5/25 practical
-3. Theory fail with a strong practical - Biology combined 46, theory 22/75
-4. Optional subject below the point where it helps - Higher Maths 45, a 2.00
-5. Optional exactly on the boundary - 49, still a 2.00
-6. Optional one mark past it - 50, a 3.00, carries 1.00
-7. Absent in a compulsory subject - Chemistry theory not sat
-8. Absent in the optional subject only - student still passes
-9. Optional subject failed outright - does not pull the student down
-10. Optional moves the letter grade from A- to A
-11. Total exceeds 5.00 and is capped
-12. Every boundary sat on exactly - Mathematics 33, Physics practical 8
-13. One mark under the line with an ordinary average - Mathematics 32
-
-### The checking list
-
-The optional subject nudges nearly every GPA, so a list of "the optional rule
-applied" would be the whole cohort and nobody would read it. The list is graded
-instead:
-
-- **Priority 1** - the result turned on this. A practical fail, an absence, or a
-  fail behind a strong average.
-- **Priority 2** - a rule applied or was withheld. The optional subject moved the
-  letter grade, or was ignored, or was failed, or the total was capped.
-- **Priority 3** - routine. The optional subject moved the number and nothing
-  else. Hidden by default; the checkbox in the toolbar brings it back.
-
-Each row names the student, the reason, the subjects to check, what to verify,
-and leaves a blank column for the teacher's signature. `verification.csv`
-prints on one page per class.
-
----
-
-## Layout
+## Project Layout
 
 ```
-app/rules.py        the engine. pure python, no db, no framework
-app/models.py       tables
-app/services.py     db rows -> engine inputs, results -> checking list
-app/main.py         REST API
-seed/seed_data.py   fixed-seed data with the 13 edge cases
-tests/test_rules.py one test per rule
-report.py           terminal output for the trace and the checking list
-web/                Ext JS front end
-alembic/            migrations
+app/rules.py        Pure Python grading engine (zero DB/framework dependencies)
+app/models.py       SQLAlchemy ORM models
+app/services.py     Database-to-engine mapping & checking list generators
+app/main.py         FastAPI REST API endpoints
+seed/seed_data.py   Fixed-seed database generator (73 students, 13 edge cases)
+tests/test_rules.py Pytest suite covering all grading rules and edge cases
+report.py           Terminal CLI reporting tool for traces and checklists
+harness.py          Public test fixture batch processor
+web/                Ext JS front-end web dashboard
+alembic/            Database migrations
 ```
-
-`app/rules.py` has no imports from the rest of the project. That is deliberate:
-when a teacher disputes a grade, the argument is about one file, and that file
-can be tested without a database.
