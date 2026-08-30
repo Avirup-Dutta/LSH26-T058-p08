@@ -3,7 +3,7 @@
 - **Team ID:** `LSH26-T058`
 - **Problem ID:** `P08`
 - **Repository Name:** `Avirup-Dutta-LSH26-T058-p08`
-- **Live URL:** `https://result-engine-vercel.vercel.app`
+- **Live URL:** `https://avirup-dutta-lsh-26-t058-p08.vercel.app/`
 
 ---
 
