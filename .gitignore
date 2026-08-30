@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+.env
+results.json
+
+# results.db is NOT ignored. It ships with the repo already seeded and
+# computed, which is what lets Vercel run with no database server.
+
+web/ext/
+Thumbs.db
+desktop.ini

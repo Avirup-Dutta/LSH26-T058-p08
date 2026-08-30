@@ -1,0 +1,114 @@
+/* Result Office
+   A marks ledger, not a dashboard. Numbers are the content, so the mono face
+   carries them and everything else stays out of the way. */
+
+/* System fonts only. A web font arrives after Ext has already measured the
+   page, which leaves the tab bar and header sized for the fallback font and
+   overlapping their neighbours. Nothing here loads late, so nothing shifts. */
+
+:root {
+  --ink: #12233b;
+  --ink-soft: #5a6b80;
+  --rule: #d9dfe7;
+  --paper: #f6f7f4;
+  --seal: #a4243b;
+  --keep: #1f6f52;
+}
+
+body, .x-body { font-family: system-ui, 'Segoe UI', sans-serif; color: var(--ink); }
+
+/* header ------------------------------------------------------------- */
+.ro-header { background: var(--ink) !important; border: 0; padding: 0 16px; }
+.ro-mark-logo {
+  display: inline-block; font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace; font-weight: 600;
+  color: var(--ink); background: #f2c14e; border-radius: 3px;
+  padding: 3px 7px; margin-right: 11px; letter-spacing: .05em;
+}
+.ro-title { color: #fff; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+.ro-sub { color: #8ea2bb; font-size: 12px; margin-left: 14px; }
+.ro-run .x-btn-inner { font-weight: 600; }
+
+/* trace header ------------------------------------------------------- */
+.ro-trace-head { padding: 20px 22px 16px; background: var(--paper); border-bottom: 1px solid var(--rule); }
+.ro-empty { color: var(--ink-soft); font-size: 14px; padding: 26px 0; }
+.ro-trace-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.ro-who h2 { margin: 3px 0 2px; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.ro-who p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+.ro-roll {
+  font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace; font-size: 11px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--ink-soft);
+}
+.ro-gpa { text-align: right; font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace; line-height: 1; }
+.ro-gpa-num { font-size: 38px; font-weight: 600; letter-spacing: -.03em; }
+.ro-gpa-letter { font-size: 20px; font-weight: 500; margin-left: 8px; color: var(--keep); }
+.ro-gpa-fail .ro-gpa-num, .ro-gpa-fail .ro-gpa-letter { color: var(--seal); }
+.ro-gpa-label {
+  display: block; margin-top: 6px; font-family: system-ui, 'Segoe UI', sans-serif;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft);
+}
+.ro-cause {
+  margin-top: 14px; padding: 9px 12px; font-size: 13px;
+  background: #fdf1f2; border-left: 3px solid var(--seal); border-radius: 0 3px 3px 0;
+}
+.ro-notes { margin: 14px 0 0; padding: 0; list-style: none; }
+.ro-notes li { font-size: 13px; color: var(--ink-soft); padding: 3px 0; }
+.ro-flags { margin-top: 12px; }
+.ro-flag {
+  display: inline-block; margin: 0 6px 6px 0; padding: 3px 9px;
+  background: #fff; border: 1px solid var(--rule); border-radius: 11px;
+  font-size: 11.5px; color: var(--ink-soft);
+}
+
+/* grids -------------------------------------------------------------- */
+.ro-trace-grid .x-grid-cell-inner,
+.ro-check-grid .x-grid-cell-inner { padding: 8px 10px; }
+.ro-row-fail { background: #fdf1f2; }
+
+.ro-mark { font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace; font-size: 13px; font-weight: 500; }
+.ro-mark i { font-style: normal; color: var(--ink-soft); font-weight: 400; }
+.ro-mark-fail { color: var(--seal); font-weight: 600; }
+.ro-passline {
+  display: block; font-size: 10px; color: #93a1b3; font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+}
+.ro-absent { color: var(--seal); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; }
+.ro-none { color: #b6bfca; }
+
+.ro-pill {
+  display: inline-block; min-width: 30px; padding: 2px 7px; border-radius: 3px;
+  background: #eef1f5; font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace; font-size: 12px; font-weight: 600;
+}
+.ro-pill-fail { background: var(--seal); color: #fff; }
+.ro-pill-top { background: var(--keep); color: #fff; }
+
+.ro-rule {
+  font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace; font-size: 10.5px; font-weight: 600;
+  letter-spacing: .04em; color: var(--ink-soft);
+  border: 1px solid var(--rule); border-radius: 2px; padding: 1px 4px; margin-right: 6px;
+}
+.ro-tag {
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-soft); border: 1px solid var(--rule); border-radius: 2px; padding: 1px 4px;
+}
+.ro-tag-edge { color: #8a6d1f; border-color: #e6d29a; background: #fdf7e6; }
+
+/* checking list ------------------------------------------------------ */
+.ro-hint { color: var(--ink-soft); font-size: 12px; padding-left: 4px; }
+.ro-prio {
+  display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%;
+  font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace; font-size: 11px; font-weight: 600; color: #fff;
+}
+.ro-prio-1 { background: var(--seal); }
+.ro-prio-2 { background: #c9903a; }
+.ro-prio-3 { background: #9aa7b6; }
+.ro-signline { display: block; border-bottom: 1px solid #c3cbd6; height: 15px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Ext measures the tab bar and header before the web font arrives, which can
+   leave them a few pixels short. Floors so nothing clips if the relayout in
+   app.js is beaten by a slow font. */
+.x-tab-bar { min-height: 34px; }
+.ro-header .x-toolbar-item { overflow: visible; }
+.ro-header .x-box-inner { overflow: visible !important; }

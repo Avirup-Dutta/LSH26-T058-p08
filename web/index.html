@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Result Office</title>
+
+<!-- Ext JS.
+     Sencha stopped publishing Ext under GPL after 7.0 and their CDN is no
+     longer dependable, so this tries a local copy in web/ext/ first and falls
+     back to a jsDelivr mirror of the 7.0 GPL release. -->
+<link rel="stylesheet" id="ro-ext-css"
+      href="ext/classic/theme-triton/resources/theme-triton-all.css">
+<script>
+  var EXT_CDN = 'https://cdn.jsdelivr.net/gh/tremez/extjs-gpl@master/build';
+  document.getElementById('ro-ext-css').onerror = function () {
+    this.onerror = null;
+    this.href = EXT_CDN + '/classic/theme-triton/resources/theme-triton-all.css';
+  };
+</script>
+<script src="ext/ext-all.js"></script>
+<script>
+  if (!window.Ext) {
+    document.write('<scr' + 'ipt src="' + EXT_CDN + '/ext-all.js"><\/scr' + 'ipt>');
+  }
+</script>
+
+<link rel="stylesheet" href="app.css">
+<style>
+  #ro-missing { display:none; font-family: system-ui, sans-serif; max-width: 640px;
+    margin: 60px auto; padding: 26px 30px; border: 1px solid #d9dfe7; border-radius: 6px;
+    line-height: 1.55; color: #12233b; }
+  #ro-missing h1 { font-size: 19px; margin: 0 0 12px; }
+  #ro-missing code { background: #f2f4f7; padding: 2px 5px; border-radius: 3px;
+    font-family: ui-monospace, monospace; font-size: 13px; word-break: break-all; }
+  #ro-missing li { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<div id="ro-missing">
+  <h1>Ext JS did not load</h1>
+  <p>The page is blank because the framework file is missing, and the mirror did
+     not answer either. Everything else in the project still works from the
+     command line.</p>
+  <ol>
+    <li>Download <code>https://github.com/tremez/extjs-gpl/archive/refs/heads/master.zip</code></li>
+    <li>Unzip it. Inside <code>extjs-gpl-master</code> there is a <code>build</code> folder.</li>
+    <li>Copy the <em>contents</em> of <code>build</code> into <code>web/ext/</code>,
+        so that <code>web/ext/ext-all.js</code> exists.</li>
+    <li>Reload this page.</li>
+  </ol>
+  <p>Meanwhile: <code>python report.py checklist</code> and
+     <code>python report.py trace 10B-031</code> give the same results in the terminal.</p>
+</div>
+
+<script>
+if (!window.Ext) {
+  document.getElementById('ro-missing').style.display = 'block';
+} else {
+  var s = document.createElement('script');
+  s.src = 'app.js';
+  document.body.appendChild(s);
+}
+</script>
+</body>
+</html>
